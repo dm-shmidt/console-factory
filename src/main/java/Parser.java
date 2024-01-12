@@ -81,6 +81,10 @@ public final class Parser {
         if (factoryConfig.existsArgument(tokens.get(i++)) && argument1.hasDefaultValue()) {
           argument1.setValue(argument1.getDefaultValue());
           continue;
+        } else if (!argument1.hasDefaultValue()) {
+          throw new ParseException("Option " + tokens.get(i - 2) + " must have a default value.");
+        } else if (!factoryConfig.existsArgument(tokens.get(i++))) {
+          throw new ParseException("Option " + tokens.get(i - 1) + " must be an option.");
         }
         valueFlag = true;
       }
