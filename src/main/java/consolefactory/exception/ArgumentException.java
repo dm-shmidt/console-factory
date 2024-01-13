@@ -1,4 +1,4 @@
-package exception;
+package consolefactory.exception;
 
 public class ArgumentException extends Exception {
 

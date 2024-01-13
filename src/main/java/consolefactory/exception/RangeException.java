@@ -1,4 +1,4 @@
-package exception;
+package consolefactory.exception;
 
 public class RangeException extends Exception {
 
