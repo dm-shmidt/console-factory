@@ -1,7 +1,7 @@
 package consolefactory;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import consolefactory.exception.ArgumentException;
+import consolefactory.exception.OptionException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,24 +35,27 @@ final class FactoryConfig {
     return INSTANCE;
   }
 
-  public void addArgument(Option option) throws ArgumentException {
+  public void addOption(Option option) throws OptionException {
     validateArgument(option);
     options.add(option);
   }
 
-  public void addPrefix(String prefix) throws ArgumentException {
+  public void addPrefix(String prefix) throws OptionException {
     if (prefix.length() > MAX_PREFIX_LENGTH) {
-      throw new ArgumentException("Prefix length must be lesser than " + MAX_PREFIX_LENGTH);
+      throw new OptionException("Prefix length must be lesser than " + MAX_PREFIX_LENGTH);
     }
     for (int i = 0; i < prefix.length(); i++) {
       if (Character.isLetterOrDigit(prefix.charAt(0))) {
-        throw new ArgumentException("Prefix must consist of non-alphanumeric symbols");
+        throw new OptionException("Prefix must consist of non-alphanumeric symbols");
       }
       switch (prefix.charAt(i)) {
+        case '"':
+        case '\'':
         case '[':
         case '{':
         case ']':
-        case '}': throw new ArgumentException("Prefix must not contain symbols {, [, ], }");
+        case '}':
+          throw new OptionException("Prefix must not contain symbols {, [, ], }, \", '");
       }
     }
 
@@ -86,18 +89,18 @@ final class FactoryConfig {
    *
    * @param option - an Argument to be added to ARGUMENTS list.
    */
-  private void validateArgument(Option option) throws ArgumentException {
+  private void validateArgument(Option option) throws OptionException {
     validateAliasPrefixes(option);
     if (options.stream().anyMatch(a -> a.getName().equals(option.getName())
         || a.getAliases().stream().anyMatch(alias -> option.getAliases().contains(alias)))) {
-      throw new ArgumentException(
+      throw new OptionException(
           "An argument with already existing name and/or aliases could not be added: " + option);
     }
   }
 
-  private void validateAliasPrefixes(Option option) throws ArgumentException {
+  private void validateAliasPrefixes(Option option) throws OptionException {
     if (option.getAliases().stream().anyMatch(alias -> !prefixes.contains(getPrefix(alias)))) {
-      throw new ArgumentException("All aliases must start of predefined prefixes");
+      throw new OptionException("All aliases must start of predefined prefixes");
     }
   }
 
