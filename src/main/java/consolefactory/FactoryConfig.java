@@ -46,6 +46,10 @@ public class FactoryConfig {
     options.add(option);
   }
 
+  protected void clearOptions() {
+    options.clear();
+  }
+
   protected void addPrefix(String prefix) throws OptionException {
     if (prefix.length() > MAX_PREFIX_LENGTH) {
       throw new OptionException("Prefix length must be lesser than " + MAX_PREFIX_LENGTH);

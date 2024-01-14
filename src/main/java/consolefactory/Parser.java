@@ -10,7 +10,6 @@ import java.util.Queue;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -54,10 +53,10 @@ public class Parser {
       return customParser.apply(s);
     }
     try {
-      if (ClassUtils.isPrimitiveWrapper(Class.forName(option.getType().getType().getTypeName()))) {
+      if (Utils.isPrimitiveType(option.getType()) || Utils.isEnum(option.getType())) {
         return MAPPER.convertValue(s, option.getType());
       }
-    } catch (ClassNotFoundException | IllegalArgumentException ignored) {
+    } catch (IllegalArgumentException ignored) {
     }
     return MAPPER.readValue(s, option.getType());
   }
@@ -79,20 +78,31 @@ public class Parser {
 
     while (!tokensQueue.isEmpty()) {
       final var optionAndToken = parseOption(tokensQueue, result);
-      if (optionAndToken == null || tokensQueue.isEmpty()) {
+      if (isParsingFinished(optionAndToken, tokensQueue)) {
         break;
       }
+      validateUniqueOption(optionAndToken, result);
       final var value = deserialize(parseValue(tokensQueue, optionAndToken),
           optionAndToken.getKey());
-      if (optionAndToken.getKey().isUnique() && result.containsKey(optionAndToken.getKey())) {
-        throw new ParseException(
-            "Option " + optionAndToken.getKey().getName() + " must be unique.");
-      }
       result.put(optionAndToken.getKey(), value);
     }
 
     validateMandatoryOptions(result);
     return result;
+  }
+
+  private void validateUniqueOption(Pair<Option, String> optionAndToken,
+      LinkedHashMap<Option, Object> result) throws ParseException {
+    if (optionAndToken.getKey().isUnique() && result.containsKey(optionAndToken.getKey())) {
+      throw new ParseException(
+          "Option " + optionAndToken.getKey().getName() + " must be unique.");
+    }
+  }
+
+  private boolean isParsingFinished(Pair<Option, String> optionAndToken,
+      Queue<String> tokensQueue) {
+    return optionAndToken == null
+        || (!Utils.isEnum(optionAndToken.getKey().getType()) && tokensQueue.isEmpty());
   }
 
   /**
@@ -130,14 +140,14 @@ public class Parser {
 
   private String parseValue(Queue<String> tokensQueue, Pair<Option, String> optionAndToken)
       throws ParseException {
-    if (tokensQueue.isEmpty()) {
-      return null;
-    }
     if (optionAndToken == null || optionAndToken.getKey() == null) {
       throw new ParseException("Option can not be null");
     }
     if (Utils.isEnum(optionAndToken.getKey().getType())) {
       return optionAndToken.getValue();
+    }
+    if (tokensQueue.isEmpty()) {
+      return null;
     }
 
     final var value = new StringBuilder();
