@@ -13,16 +13,27 @@ public class Option {
   private final Set<String> aliases;
   private final Object defaultValue;
   private final TypeReference<?> type;
-  private final boolean mandatory;
+  private final boolean mandatory = false;
   private final boolean unique = true;
   private final Object[] bounds;
   private final String helpInfo;
 
-  public boolean hasDefaultValue() {
+  public static class OptionBuilder {
+
+    private String helpInfo;
+
+    public OptionBuilder helpInfo(String helpInfo) {
+      this.helpInfo = String.join(", ", aliases) + ": " + helpInfo;
+      return this;
+    }
+
+  }
+
+  protected boolean hasDefaultValue() {
     return defaultValue != null;
   }
 
-  public boolean hasAlias(String alias) {
+  protected boolean hasAlias(String alias) {
     return aliases.contains(alias);
   }
 }

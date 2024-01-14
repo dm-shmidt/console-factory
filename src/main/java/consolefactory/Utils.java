@@ -7,10 +7,23 @@ public class Utils {
 
   protected static boolean isPrimitiveType(TypeReference<?> typeReference) {
     try {
-      return ClassUtils.isPrimitiveOrWrapper(Class.forName(typeReference.getType().getTypeName()));
+      return ClassUtils.isPrimitiveOrWrapper(getClassName(typeReference));
     } catch (ClassNotFoundException e) {
       return false;
     }
+  }
+
+  protected static boolean isEnum(TypeReference<?> typeReference) {
+    try {
+      return getClassName(typeReference).isEnum();
+    } catch (ClassNotFoundException e) {
+      return false;
+    }
+  }
+
+  private static Class<?> getClassName(TypeReference<?> typeReference)
+      throws ClassNotFoundException {
+    return Class.forName(typeReference.getType().getTypeName());
   }
 
 }

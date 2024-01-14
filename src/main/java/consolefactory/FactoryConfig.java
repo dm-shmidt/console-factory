@@ -9,18 +9,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
-final class FactoryConfig {
+public class FactoryConfig {
 
   private static FactoryConfig INSTANCE;
   private final Map<TypeReference<?>, Function<String, Object>> customParsers = new HashMap<>();
   private final List<Option> options = new ArrayList<>();
   private Set<String> prefixes = new HashSet<>();
   private final static short MAX_PREFIX_LENGTH = 2;
+  public static final String HELP_OPTION_NAME = "help";
+  private final Set<Character> forbiddenCharsInPrefixes =
+      Set.of('"', '\'', '[', '{', ']', '}', '(', ')');
+  private final Set<Character> openingChars = Set.of('"', '{', '[', '(');
+  private final Set<Character> closingChars = Set.of('"', '}', ']', ')');
 
   private FactoryConfig() {
     prefixes.add("");
@@ -28,19 +34,19 @@ final class FactoryConfig {
     prefixes.add("--");
   }
 
-  public static FactoryConfig getInstance() {
+  protected static FactoryConfig getInstance() {
     if (INSTANCE == null) {
       INSTANCE = new FactoryConfig();
     }
     return INSTANCE;
   }
 
-  public void addOption(Option option) throws OptionException {
+  protected void addOption(Option option) throws OptionException {
     validateArgument(option);
     options.add(option);
   }
 
-  public void addPrefix(String prefix) throws OptionException {
+  protected void addPrefix(String prefix) throws OptionException {
     if (prefix.length() > MAX_PREFIX_LENGTH) {
       throw new OptionException("Prefix length must be lesser than " + MAX_PREFIX_LENGTH);
     }
@@ -48,28 +54,23 @@ final class FactoryConfig {
       if (Character.isLetterOrDigit(prefix.charAt(0))) {
         throw new OptionException("Prefix must consist of non-alphanumeric symbols");
       }
-      switch (prefix.charAt(i)) {
-        case '"':
-        case '\'':
-        case '[':
-        case '{':
-        case ']':
-        case '}':
-          throw new OptionException("Prefix must not contain symbols {, [, ], }, \", '");
+      if (forbiddenCharsInPrefixes.contains(prefix.charAt(i))) {
+        throw new OptionException("Prefix must not contain symbols: " +
+            forbiddenCharsInPrefixes.stream()
+                .map(Object::toString).collect(Collectors.joining(",")));
       }
     }
-
   }
 
-  public void addParser(TypeReference<?> type, Function<String, Object> parser) {
+  protected void addParser(TypeReference<?> type, Function<String, Object> parser) {
     customParsers.put(type, parser);
   }
 
-  public Function<String, Object> getParser(TypeReference<?> type) {
+  protected Function<String, Object> getParser(TypeReference<?> type) {
     return customParsers.get(type);
   }
 
-  public Option getArgumentByAlias(String alias) {
+  protected Option getOptionByAlias(String alias) {
     if (alias == null || alias.isBlank()) {
       return null;
     }
@@ -79,7 +80,7 @@ final class FactoryConfig {
         .orElse(null);
   }
 
-  public boolean existsArgument(String alias) {
+  protected boolean existsOption(String alias) {
     return options.stream().anyMatch(option -> option.getAliases().contains(alias));
   }
 
