@@ -12,7 +12,6 @@ public class ConsoleFactoryTest {
 
   final static ConsoleFactory CONSOLE_FACTORY = new ConsoleFactory();
 
-
   @BeforeAll
   static void setUp() throws OptionException {
     addOptionsToConfiguration();
@@ -53,7 +52,7 @@ public class ConsoleFactoryTest {
     final var b = CONSOLE_FACTORY.getValueByOptionName("b", Integer.class);
     final var operation = CONSOLE_FACTORY.getValueByOptionName("math-operation",
         MathOperation.class);
-    final var verbose = CONSOLE_FACTORY.getOptionsByName("verbose").get(0);
+    final var verbose = CONSOLE_FACTORY.getOptionByName("verbose");
     final var result = performMath(a, b, operation.toString());
     if (verbose != null) {
       System.out.println(a + operation.toString() + b + "=" + result);
@@ -62,8 +61,9 @@ public class ConsoleFactoryTest {
     }
   }
 
-  private static void printListValueFunction()  {
-    final var listType = new TypeReference<List<String>>() {};
+  private static void printListValueFunction() {
+    final var listType = new TypeReference<List<String>>() {
+    };
     final var list = CONSOLE_FACTORY.getValueByOptionName("list", listType);
     System.out.println(list);
   }

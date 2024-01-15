@@ -60,21 +60,13 @@ public class ConsoleFactory {
   }
 
   public List<Option> getOptionsByName(String name) {
-    final var list = result.keySet().stream().filter(option -> option.getName().equals(name))
+    return result.keySet().stream().filter(option -> option.getName().equals(name))
         .collect(Collectors.toList());
-    if (list.isEmpty()) {
-      System.out.println("No options with name " + name + " found.");
-      return null;
-    }
-    return list;
   }
 
   public Option getOptionByName(String name) {
     final var list = getOptionsByName(name);
-    if (list.isEmpty()) {
-      return null;
-    }
-    return list.get(0);
+    return getListFirstElement(name, list, "options");
   }
 
   public <T> List<T> getValuesByOptionName(String name, Class<T> classType) {
@@ -89,15 +81,7 @@ public class ConsoleFactory {
 
   public <T> T getValueByOptionName(String name, Class<T> classType) {
     final var list = getValuesByOptionName(name, classType);
-    return getListFirstElement(name, list);
-  }
-
-  private <T> T getListFirstElement(String name, List<T> list) {
-    if (list.isEmpty()) {
-      System.out.println("Error: No values for option " + name + " found.");
-      return null;
-    }
-    return list.get(0);
+    return getListFirstElement(name, list, "values");
   }
 
   public <T> List<T> getValuesByOptionName(String name, TypeReference<T> typeRef) {
@@ -112,11 +96,7 @@ public class ConsoleFactory {
 
   public <T> T getValueByOptionName(String name, TypeReference<T> typeRef) {
     final var list = getValuesByOptionName(name, typeRef);
-    if (list.isEmpty()) {
-      System.out.println("Error: No values for option " + name + " found.");
-      return null;
-    }
-    return list.get(0);
+    return getListFirstElement(name, list, "values");
   }
 
   @SuppressWarnings("unchecked")
@@ -125,6 +105,15 @@ public class ConsoleFactory {
         .filter(entry -> entry.getKey().getName().equals(name))
         .map(entry -> (T) entry.getValue())
         .collect(Collectors.toList());
+  }
+
+
+  private <T> T getListFirstElement(String name, List<T> list, String entitiesName) {
+    if (list.isEmpty()) {
+      System.out.println("Error: No " + entitiesName + " for option " + name + " found.");
+      return null;
+    }
+    return list.get(0);
   }
 
   public void addPrefix(String prefix) throws OptionException {
