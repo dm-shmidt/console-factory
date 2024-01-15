@@ -22,6 +22,9 @@ public class ConsoleFactory {
   private LinkedHashMap<Option, Object> result = new LinkedHashMap<>();
 
   private void init() throws OptionException {
+    if (factoryConfig.existsOptionByName(HELP_OPTION_NAME)) {
+      return;
+    }
     factoryConfig.addOption(Option.builder()
         .name(HELP_OPTION_NAME)
         .aliases(Set.of("-h", "--h"))
@@ -67,11 +70,11 @@ public class ConsoleFactory {
   }
 
   @SuppressWarnings("unchecked")
-  public <T> List<T> getValuesByOptionName(String name, T v) {
+  public <T> List<T> getValuesByOptionName(String name, Class<T> v) {
     final var optionType = getOptionsByName(name).get(0).getType().getType();
-    if (!optionType.equals(v.getClass())) {
+    if (!optionType.equals(v)) {
       System.out.println(
-          "Cannot cast " + optionType.getTypeName() + " to " + v.getClass().getTypeName());
+          "Cannot cast " + optionType.getTypeName() + " to " + v.getTypeName());
       return null;
     }
     return result.entrySet().stream()

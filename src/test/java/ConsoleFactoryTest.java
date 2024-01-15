@@ -4,33 +4,34 @@ import consolefactory.Option;
 import consolefactory.exception.OptionException;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class ConsoleFactoryTest {
 
   final static ConsoleFactory CONSOLE_FACTORY = new ConsoleFactory();
 
-  @Test
-  void testHelp() throws OptionException {
+
+  @BeforeAll
+  static void setUp() throws OptionException {
     addOptionsToConfiguration();
-    CONSOLE_FACTORY.run("--h");
-    CONSOLE_FACTORY.clearOptions();
   }
 
   @Test
-  void testPrintAll() throws OptionException {
-    addOptionsToConfiguration();
+  void testHelp() {
+    CONSOLE_FACTORY.run("--h");
+  }
+
+  @Test
+  void testPrintAll() {
     CONSOLE_FACTORY.setFunction(ConsoleFactoryTest::printAll);
     CONSOLE_FACTORY.run("-a 50 --b 100 PLUS -v");
-    CONSOLE_FACTORY.clearOptions();
   }
 
   @Test
-  void testCalculator() throws OptionException {
-    addOptionsToConfiguration();
+  void testCalculator() {
     CONSOLE_FACTORY.setFunction(ConsoleFactoryTest::calculatorFunction);
     CONSOLE_FACTORY.run("-a 50 --b 100 PLUS -v");
-    CONSOLE_FACTORY.clearOptions();
   }
 
   private static void printAll() {
@@ -41,10 +42,10 @@ public class ConsoleFactoryTest {
   }
 
   private static void calculatorFunction() {
-    final var a = CONSOLE_FACTORY.getValuesByOptionName("a", 1).get(0);
-    final var b = CONSOLE_FACTORY.getValuesByOptionName("b", 1).get(0);
+    final var a = CONSOLE_FACTORY.getValuesByOptionName("a", Integer.class).get(0);
+    final var b = CONSOLE_FACTORY.getValuesByOptionName("b", Integer.class).get(0);
     final var operation = CONSOLE_FACTORY.getValuesByOptionName("math-operation",
-        MathOperation.PLUS).get(0);
+        MathOperation.class).get(0);
     final var verbose = CONSOLE_FACTORY.getOptionsByName("verbose").get(0);
     final var result = performMath(a, b, operation.toString());
     if (verbose != null) {
@@ -72,7 +73,7 @@ public class ConsoleFactoryTest {
     return null;
   }
 
-  private void addOptionsToConfiguration() throws OptionException {
+  private static void addOptionsToConfiguration() throws OptionException {
     CONSOLE_FACTORY.addOption(
         Option.builder()
             .name("a")
@@ -109,7 +110,6 @@ public class ConsoleFactoryTest {
             .type(new TypeReference<Integer>() {
             })
             .build());
-
   }
 
   enum MathOperation {

@@ -84,8 +84,8 @@ public class FactoryConfig {
         .orElse(null);
   }
 
-  protected boolean existsOption(String alias) {
-    return options.stream().anyMatch(option -> option.getAliases().contains(alias));
+  protected boolean existsOptionByName(String name) {
+    return options.stream().anyMatch(option -> option.getName().equals(name));
   }
 
   /**
