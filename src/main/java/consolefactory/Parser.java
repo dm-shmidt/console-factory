@@ -53,7 +53,7 @@ public class Parser {
       return customParser.apply(s);
     }
     try {
-      if (Utils.isPrimitiveType(option.getType()) || Utils.isEnum(option.getType())) {
+      if (ConsoleUtils.isPrimitiveType(option.getType()) || ConsoleUtils.isEnum(option.getType())) {
         return MAPPER.convertValue(s, option.getType());
       }
     } catch (IllegalArgumentException ignored) {
@@ -102,7 +102,7 @@ public class Parser {
   private boolean isParsingFinished(Pair<Option, String> optionAndToken,
       Queue<String> tokensQueue) {
     return optionAndToken == null
-        || (!Utils.isEnum(optionAndToken.getKey().getType()) && tokensQueue.isEmpty());
+        || (!ConsoleUtils.isEnum(optionAndToken.getKey().getType()) && tokensQueue.isEmpty());
   }
 
   /**
@@ -122,7 +122,7 @@ public class Parser {
       }
       final var nextToken = tokensQueue.peek();
       final var nextPossibleOption = factoryConfig.getOptionByAlias(nextToken);
-      if (!Utils.isEnum(currentOption.getType())) {
+      if (!ConsoleUtils.isEnum(currentOption.getType())) {
         if (nextPossibleOption != null || tokensQueue.isEmpty()) {
           if (currentOption.hasDefaultValue()) {
             result.put(currentOption, currentOption.getDefaultValue());
@@ -131,7 +131,7 @@ public class Parser {
           }
         }
       }
-      if (nextPossibleOption == null || Utils.isEnum(currentOption.getType())) {
+      if (nextPossibleOption == null || ConsoleUtils.isEnum(currentOption.getType())) {
         optionAndToken = new ImmutablePair<>(currentOption, currentToken);
       }
     }
@@ -143,7 +143,7 @@ public class Parser {
     if (optionAndToken == null || optionAndToken.getKey() == null) {
       throw new ParseException("Option can not be null");
     }
-    if (Utils.isEnum(optionAndToken.getKey().getType())) {
+    if (ConsoleUtils.isEnum(optionAndToken.getKey().getType())) {
       return optionAndToken.getValue();
     }
     if (tokensQueue.isEmpty()) {
@@ -153,7 +153,7 @@ public class Parser {
     final var value = new StringBuilder();
 
     var token = tokensQueue.poll();
-    if (Utils.isPrimitiveType(optionAndToken.getKey().getType())) {
+    if (ConsoleUtils.isPrimitiveType(optionAndToken.getKey().getType())) {
       return token;
     }
     if (optionAndToken.getKey().getType().equals(new TypeReference<String>() {
@@ -166,10 +166,12 @@ public class Parser {
       return value.toString();
     }
 
-    if (!isOpeningToken(value.toString())) {
+    if (!isOpeningToken(token)) {
       throw new ParseException(
-          "A value for option " + optionAndToken.getKey().getName() + " must start of {,[,\" ");
+          "A value for option " + optionAndToken.getKey().getName() + " must start of one of "
+              + factoryConfig.getOpeningChars() + " symbols.");
     }
+    value.append(token);
     while (!tokensQueue.isEmpty() || !isClosingToken(token)) {
       token = tokensQueue.poll();
       value.append(token);

@@ -69,14 +69,58 @@ public class ConsoleFactory {
     return list;
   }
 
-  @SuppressWarnings("unchecked")
-  public <T> List<T> getValuesByOptionName(String name, Class<T> v) {
-    final var optionType = getOptionsByName(name).get(0).getType().getType();
-    if (!optionType.equals(v)) {
-      System.out.println(
-          "Cannot cast " + optionType.getTypeName() + " to " + v.getTypeName());
+  public Option getOptionByName(String name) {
+    final var list = getOptionsByName(name);
+    if (list.isEmpty()) {
       return null;
     }
+    return list.get(0);
+  }
+
+  public <T> List<T> getValuesByOptionName(String name, Class<T> classType) {
+    final var optionType = getOptionsByName(name).get(0).getType().getType();
+    if (!optionType.equals(classType)) {
+      System.out.println(
+          "Cannot cast " + optionType.getTypeName() + " to " + classType.getTypeName());
+      return null;
+    }
+    return getValuesByOptionName(name);
+  }
+
+  public <T> T getValueByOptionName(String name, Class<T> classType) {
+    final var list = getValuesByOptionName(name, classType);
+    return getListFirstElement(name, list);
+  }
+
+  private <T> T getListFirstElement(String name, List<T> list) {
+    if (list.isEmpty()) {
+      System.out.println("Error: No values for option " + name + " found.");
+      return null;
+    }
+    return list.get(0);
+  }
+
+  public <T> List<T> getValuesByOptionName(String name, TypeReference<T> typeRef) {
+    final var optionType = getOptionsByName(name).get(0).getType();
+    if (!typeRef.getType().equals(optionType.getType())) {
+      System.out.println(
+          "Cannot cast " + optionType + " to " + typeRef);
+      return null;
+    }
+    return getValuesByOptionName(name);
+  }
+
+  public <T> T getValueByOptionName(String name, TypeReference<T> typeRef) {
+    final var list = getValuesByOptionName(name, typeRef);
+    if (list.isEmpty()) {
+      System.out.println("Error: No values for option " + name + " found.");
+      return null;
+    }
+    return list.get(0);
+  }
+
+  @SuppressWarnings("unchecked")
+  private <T> List<T> getValuesByOptionName(String name) {
     return result.entrySet().stream()
         .filter(entry -> entry.getKey().getName().equals(name))
         .map(entry -> (T) entry.getValue())

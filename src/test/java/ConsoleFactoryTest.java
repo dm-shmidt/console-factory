@@ -2,6 +2,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import consolefactory.ConsoleFactory;
 import consolefactory.Option;
 import consolefactory.exception.OptionException;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeAll;
@@ -34,6 +35,12 @@ public class ConsoleFactoryTest {
     CONSOLE_FACTORY.run("-a 50 --b 100 PLUS -v");
   }
 
+  @Test
+  void testList() {
+    CONSOLE_FACTORY.setFunction(ConsoleFactoryTest::printListValueFunction);
+    CONSOLE_FACTORY.run("-l [\"qwer\",\"zxcv\",\"asdfg\"]");
+  }
+
   private static void printAll() {
     final var list = CONSOLE_FACTORY.getResult().entrySet().stream()
         .map(entry -> entry.getKey().getName() + ": " + entry.getValue())
@@ -42,10 +49,10 @@ public class ConsoleFactoryTest {
   }
 
   private static void calculatorFunction() {
-    final var a = CONSOLE_FACTORY.getValuesByOptionName("a", Integer.class).get(0);
-    final var b = CONSOLE_FACTORY.getValuesByOptionName("b", Integer.class).get(0);
-    final var operation = CONSOLE_FACTORY.getValuesByOptionName("math-operation",
-        MathOperation.class).get(0);
+    final var a = CONSOLE_FACTORY.getValueByOptionName("a", Integer.class);
+    final var b = CONSOLE_FACTORY.getValueByOptionName("b", Integer.class);
+    final var operation = CONSOLE_FACTORY.getValueByOptionName("math-operation",
+        MathOperation.class);
     final var verbose = CONSOLE_FACTORY.getOptionsByName("verbose").get(0);
     final var result = performMath(a, b, operation.toString());
     if (verbose != null) {
@@ -53,6 +60,12 @@ public class ConsoleFactoryTest {
     } else {
       System.out.println(result);
     }
+  }
+
+  private static void printListValueFunction()  {
+    final var listType = new TypeReference<List<String>>() {};
+    final var list = CONSOLE_FACTORY.getValueByOptionName("list", listType);
+    System.out.println(list);
   }
 
   private static Object performMath(Integer a, Integer b, String operation) {
@@ -108,6 +121,15 @@ public class ConsoleFactoryTest {
             .helpInfo("verbose an equation")
             .defaultValue("verbose")
             .type(new TypeReference<Integer>() {
+            })
+            .build());
+
+    CONSOLE_FACTORY.addOption(
+        Option.builder()
+            .name("list")
+            .aliases(Set.of("-l"))
+            .helpInfo("list of strings")
+            .type(new TypeReference<List<String>>() {
             })
             .build());
   }
